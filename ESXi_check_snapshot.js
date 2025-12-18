@@ -1,12 +1,12 @@
 /**
  * Domotz Custom Driver
- * Name: ESXi Snapshot Monitor
- * Description: Checks if VMs are running on snapshots using the working SOAP structure.
+ * Name: ESXi Snapshot Monitor (Production)
+ * Description: Monitors ESXi VMs for active snapshots using SOAP.
+ * Handles case-sensitivity issues found in ESXi 8.0.
  **/
 
 const url = '/sdk';
 
-// Table to store Snapshot status
 var table = D.createTable(
   'VM Snapshot Status',[
     { label: 'Name', valueType: D.valueType.STRING},
@@ -26,13 +26,12 @@ function sendSoapRequest (body, extractData) {
   };
   D.device.http.post(config, function (error, response, body) {
     if (error) {
-      console.error(error);
       D.failure(D.errorType.GENERIC_ERROR);
     }
     const $ = D.htmlParse(body);
     const faultString = $('faultstring').text();
     if (faultString) {
-      console.error("SOAP Fault: " + faultString);
+      console.error("VMware SOAP Fault: " + faultString);
       D.failure(D.errorType.GENERIC_ERROR);
     } else if (response.statusCode !== 200) {
       D.failure(D.errorType.GENERIC_ERROR);
@@ -62,9 +61,6 @@ function login () {
   });
 }
 
-/**
- * Step 1: Get the list of all VM IDs from the VM Folder
- */
 function retrieveVMList() {
   const payload = createSoapPayload(
     '<vim25:RetrieveProperties>' +
@@ -89,15 +85,11 @@ function retrieveVMList() {
   });
 }
 
-/**
- * Step 2: Query name, powerState, and snapshot for each ID found
- */
 function retrieveSnapshotDetails(vmIds) {
   if (!vmIds || vmIds.length === 0) {
     D.success(table);
     return;
   }
-
   const objectSets = vmIds.map(function(id) { 
     return '<vim25:objectSet><vim25:obj type="VirtualMachine">' + id + '</vim25:obj></vim25:objectSet>';
   }).join('');
@@ -110,7 +102,7 @@ function retrieveSnapshotDetails(vmIds) {
     '      <vim25:type>VirtualMachine</vim25:type>' + 
     '      <vim25:pathSet>name</vim25:pathSet>' +
     '      <vim25:pathSet>runtime.powerState</vim25:pathSet>' +
-    '      <vim25:pathSet>snapshot</vim25:pathSet>' +
+    '      <vim25:pathSet>snapshot</vim25:pathSet>' + 
     '    </vim25:propSet>' + 
     objectSets +
     '  </vim25:specSet>' + 
@@ -125,24 +117,23 @@ function parseResults(body) {
   $('returnval').each(function() {
     const vmRef = $(this);
     const recordId = vmRef.find('obj').text();
+    const rawXml = vmRef.html().toLowerCase();
     
     let name = "Unknown";
     let powerState = "Unknown";
-    let hasSnapshotProp = false;
+    let hasSnapshot = (rawXml.indexOf('currentsnapshot') !== -1 || rawXml.indexOf('rootsnapshotlist') !== -1);
 
-    vmRef.find('propSet').each(function() {
-      const pName = $(this).find('name').text();
+    vmRef.find('propset, propSet').each(function() {
+      const pName = $(this).find('name').text().toLowerCase();
       const pVal = $(this).find('val');
-
       if (pName === 'name') name = pVal.text();
-      if (pName === 'runtime.powerState') powerState = pVal.text();
-      if (pName === 'snapshot') hasSnapshotProp = true;
+      if (pName === 'runtime.powerstate') powerState = pVal.text();
     });
 
     let snapshotStatus = "No";
-    if (hasSnapshotProp && powerState === 'poweredOn') {
+    if (hasSnapshot && powerState === 'poweredOn') {
       snapshotStatus = "YES ⚠️";
-    } else if (hasSnapshotProp) {
+    } else if (hasSnapshot) {
       snapshotStatus = "Paused (Snapshot Exists)";
     }
 
@@ -153,14 +144,11 @@ function parseResults(body) {
 }
 
 function validate() {
-  login()
-    .then(retrieveVMList)
-    .then(function(vms) {
-      if (vms.length >= 0) D.success();
-    })
-    .catch(function() {
-      D.failure(D.errorType.GENERIC_ERROR);
-    });
+  login().then(retrieveVMList).then(function(vms) {
+    if (vms) D.success();
+  }).catch(function() {
+    D.failure(D.errorType.GENERIC_ERROR);
+  });
 }
 
 function get_status() {
@@ -168,7 +156,6 @@ function get_status() {
     .then(retrieveVMList)
     .then(retrieveSnapshotDetails)
     .catch(function(err) {
-      console.error(err);
       D.failure(D.errorType.GENERIC_ERROR);
     });
 }
