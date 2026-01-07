@@ -68,19 +68,19 @@ step_message 7 "Configuring Netplan with networkd renderer"
 # Note: renderer is explicitly set to networkd here
 sudo tee /etc/netplan/00-installer-config.yaml > /dev/null <<EOL
 network:
-    version: 2
-    renderer: networkd
-    ethernets:
-        all-en:
-            match:
-                name: "en*"
-            dhcp4: true
-            dhcp6: false
-        all-eth:
-            match:
-                name: "eth*"
-            dhcp4: true
-            dhcp6: false
+  version: 2
+  renderer: networkd
+  ethernets:
+    all-en:
+      match:
+        name: "en*"
+      renderer: networkd
+      dhcp4: true
+    all-eth:
+      match:
+        name: "eth*"
+      renderer: networkd
+      dhcp4: true
 EOL
 sudo chmod 600 /etc/netplan/00-installer-config.yaml
 # Clean up existing configs that might use NetworkManager
