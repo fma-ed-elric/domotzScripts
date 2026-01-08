@@ -91,10 +91,6 @@ sudo netplan apply
 step_message 8 "Disabling Power Saving and Sleep Targets"
 progress_message "Masking sleep and suspend..."
 sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
-progress_message "Configuring logind to ignore lid switches..."
-sudo sed -i 's/#HandleLidSwitch=.*/HandleLidSwitch=ignore/' /etc/systemd/logind.conf
-sudo sed -i 's/#HandleLidSwitchExternalPower=.*/HandleLidSwitchExternalPower=ignore/' /etc/systemd/logind.conf
-sudo systemctl restart systemd-logind
 
 # Step 9: DNS Fix
 step_message 9 "Resolving DNS symlink issues"
