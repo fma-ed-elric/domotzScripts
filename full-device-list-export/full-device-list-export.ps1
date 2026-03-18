@@ -73,7 +73,22 @@ function Generate-CSVReport {
     Write-Host "CSV report generated at: $filePath"
 }
 
-# The rest of your script remains the same (e.g., Fetch-Agents, Fetch-DevicesForAgent, etc.)
+# Function to fetch devices for a given agent
+function Fetch-DevicesForAgent {
+    param ($agent)
+
+    $agentId = $agent.id
+    $response = Invoke-RestMethod -Uri "$BASE_URL/agent/$agentId/device" -Method Get -Headers @{ "x-api-key" = $API_KEY }
+
+    # Attach agent context to each device for the report
+    foreach ($device in $response) {
+        $device | Add-Member -NotePropertyName "siteName" -NotePropertyValue $agent.display_name -Force
+        $device | Add-Member -NotePropertyName "domotzSiteId" -NotePropertyValue $agent.id -Force
+        $device | Add-Member -NotePropertyName "deviceId" -NotePropertyValue $device.id -Force
+    }
+
+    return $response
+}
 
 # Main function to fetch agents, devices, and generate the report
 function Fetch-AndGenerateReport {
