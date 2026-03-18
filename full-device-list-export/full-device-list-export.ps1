@@ -57,7 +57,7 @@ function Flatten-Device {
     # Flatten the 'names' property
     $flattenedDevice["host_name"] = if ($device.names.host) { $device.names.host } else { "N/A" }
     
-    return $flattenedDevice
+    return [PSCustomObject]$flattenedDevice
 }
 
 # Function to generate a CSV report for devices
