@@ -7,15 +7,15 @@ $BASE_URL = "https://api-us-east-1-cell-1.domotz.com/public-api/v1"
 
 # Define user filters (adjust according to your needs)
 $userFilters = @{
-    deviceMake = ""
+    deviceMake  = ""
     deviceModel = ""
-    status = ""
+    status      = ""
 }
 
 # Function to fetch agents
 function Fetch-Agents {
     $response = Invoke-RestMethod -Uri "$BASE_URL/agent" -Method Get -Headers @{ "x-api-key" = $API_KEY }
-    
+
     Write-Host "Agents fetched (first 5):" ($response | Select-Object -First 5 | ConvertTo-Json)
     return $response
 }
@@ -24,9 +24,8 @@ function Fetch-Agents {
 function Flatten-Device {
     param ($device)
 
-    # Extract basic properties
-    $flattenedDevice = @{
-        "id"                   = $device.id
+    return [PSCustomObject][ordered]@{
+        "id"                    = $device.id
         "display_name"          = $device.display_name
         "authentication_status" = $device.authentication_status
         "snmp_status"           = if ($device.snmp_status -eq "NOT_FOUND") { "N/A" } else { $device.snmp_status }
@@ -46,18 +45,10 @@ function Flatten-Device {
         "snmp_write_community"  = if ($device.details.snmp_write_community) { $device.details.snmp_write_community } else { "N/A" }
         "room"                  = if ($device.details.room) { $device.details.room } else { "N/A" }
         "zone"                  = if ($device.details.zone) { $device.details.zone } else { "N/A" }
+        "ip_address"            = if ($device.ip_addresses -and $device.ip_addresses.Count -gt 0) { ($device.ip_addresses -join ", ") } else { "N/A" }
+        "open_ports"            = if ($device.open_ports) { "TCP: " + ($device.open_ports.tcp -join ", ") + "; UDP: " + ($device.open_ports.udp -join ", ") } else { "N/A" }
+        "host_name"             = if ($device.names.host) { $device.names.host } else { "N/A" }
     }
-
-    # Handle arrays such as IP addresses and open ports
-    $flattenedDevice["ip_address"] = if ($device.ip_addresses -and $device.ip_addresses.Count -gt 0) { ($device.ip_addresses -join ", ") } else { "N/A" }
-    $flattenedDevice["open_ports"] = if ($device.open_ports) { 
-        "TCP: " + ($device.open_ports.tcp -join ", ") + "; UDP: " + ($device.open_ports.udp -join ", ") 
-    } else { "N/A" }
-
-    # Flatten the 'names' property
-    $flattenedDevice["host_name"] = if ($device.names.host) { $device.names.host } else { "N/A" }
-    
-    return [PSCustomObject]$flattenedDevice
 }
 
 # Function to generate a CSV report for devices
@@ -82,9 +73,9 @@ function Fetch-DevicesForAgent {
 
     # Attach agent context to each device for the report
     foreach ($device in $response) {
-        $device | Add-Member -NotePropertyName "siteName" -NotePropertyValue $agent.display_name -Force
-        $device | Add-Member -NotePropertyName "domotzSiteId" -NotePropertyValue $agent.id -Force
-        $device | Add-Member -NotePropertyName "deviceId" -NotePropertyValue $device.id -Force
+        $device | Add-Member -NotePropertyName "siteName"    -NotePropertyValue $agent.display_name -Force
+        $device | Add-Member -NotePropertyName "domotzSiteId" -NotePropertyValue $agent.id          -Force
+        $device | Add-Member -NotePropertyName "deviceId"    -NotePropertyValue $device.id          -Force
     }
 
     return $response
