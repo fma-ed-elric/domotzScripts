@@ -12,12 +12,23 @@ $userFilters = @{
     status      = ""
 }
 
-# Function to fetch agents
+# Function to fetch all agents with pagination
 function Fetch-Agents {
-    $response = Invoke-RestMethod -Uri "$BASE_URL/agent" -Method Get -Headers @{ "x-api-key" = $API_KEY }
+    $allAgents = [System.Collections.Generic.List[object]]::new()
+    $pageSize = 100
+    $page = 0
 
-    Write-Host "Agents fetched (first 5):" ($response | Select-Object -First 5 | ConvertTo-Json)
-    return $response
+    do {
+        $response = @(Invoke-RestMethod -Uri "$BASE_URL/agent?page=$page&page_size=$pageSize" -Method Get -Headers @{ "x-api-key" = $API_KEY })
+        foreach ($agent in $response) {
+            $allAgents.Add($agent)
+        }
+        Write-Host "Fetched page $page - got $($response.Count) agents (total so far: $($allAgents.Count))"
+        $page++
+    } while ($response.Count -eq $pageSize)
+
+    Write-Host "Total agents fetched: $($allAgents.Count)"
+    return $allAgents
 }
 
 # Function to flatten complex objects and prepare CSV-ready data
@@ -64,7 +75,7 @@ function Generate-CSVReport {
     Write-Host "CSV report generated at: $filePath"
 }
 
-# Function to fetch devices for a given agent
+# Function to fetch all devices for a given agent (no pagination)
 function Fetch-DevicesForAgent {
     param ($agent)
 
