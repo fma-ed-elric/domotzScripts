@@ -16,15 +16,15 @@ $userFilters = @{
 function Fetch-Agents {
     $allAgents = [System.Collections.Generic.List[object]]::new()
     $pageSize = 100
-    $page = 0
+    $pageNumber = 0
 
     do {
-        $response = @(Invoke-RestMethod -Uri "$BASE_URL/agent?page=$page&page_size=$pageSize" -Method Get -Headers @{ "x-api-key" = $API_KEY })
+        $response = @(Invoke-RestMethod -Uri "$BASE_URL/agent?page_number=$pageNumber&page_size=$pageSize" -Method Get -Headers @{ "x-api-key" = $API_KEY })
         foreach ($agent in $response) {
             $allAgents.Add($agent)
         }
-        Write-Host "Fetched page $page - got $($response.Count) agents (total so far: $($allAgents.Count))"
-        $page++
+        Write-Host "Fetched page $pageNumber - got $($response.Count) agents (total so far: $($allAgents.Count))"
+        $pageNumber++
     } while ($response.Count -eq $pageSize)
 
     Write-Host "Total agents fetched: $($allAgents.Count)"
