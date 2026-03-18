@@ -69,13 +69,12 @@ function Fetch-DevicesForAgent {
     param ($agent)
 
     $agentId = $agent.id
-    $response = Invoke-RestMethod -Uri "$BASE_URL/agent/$agentId/device" -Method Get -Headers @{ "x-api-key" = $API_KEY }
+    $response = @(Invoke-RestMethod -Uri "$BASE_URL/agent/$agentId/device" -Method Get -Headers @{ "x-api-key" = $API_KEY })
 
-    # Attach agent context to each device for the report
     foreach ($device in $response) {
-        $device | Add-Member -NotePropertyName "siteName"    -NotePropertyValue $agent.display_name -Force
-        $device | Add-Member -NotePropertyName "domotzSiteId" -NotePropertyValue $agent.id          -Force
-        $device | Add-Member -NotePropertyName "deviceId"    -NotePropertyValue $device.id          -Force
+        $device | Add-Member -NotePropertyName "siteName"     -NotePropertyValue $agent.display_name -Force
+        $device | Add-Member -NotePropertyName "domotzSiteId" -NotePropertyValue $agent.id           -Force
+        $device | Add-Member -NotePropertyName "deviceId"     -NotePropertyValue $device.id          -Force
     }
 
     return $response
@@ -84,13 +83,17 @@ function Fetch-DevicesForAgent {
 # Main function to fetch agents, devices, and generate the report
 function Fetch-AndGenerateReport {
     $agents = Fetch-Agents
-    $allDevices = @()
+    $allDevices = [System.Collections.Generic.List[object]]::new()
 
     foreach ($agent in $agents) {
         $devices = Fetch-DevicesForAgent -agent $agent
-        $allDevices += $devices
+        Write-Host "Agent '$($agent.display_name)' returned $($devices.Count) devices."
+        foreach ($device in $devices) {
+            $allDevices.Add($device)
+        }
     }
 
+    Write-Host "Total devices across all agents: $($allDevices.Count)"
     $filePath = Join-Path (Get-Location) "domotz_devices_report.csv"
     Generate-CSVReport -devices $allDevices -filePath $filePath
 }
