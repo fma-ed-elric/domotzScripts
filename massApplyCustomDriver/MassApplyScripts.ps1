@@ -4,11 +4,11 @@ Write-Host "  1) US  - api-us-east-1-cell-1.domotz.com"
 Write-Host "  2) EU  - api-eu-west-1-cell-1.domotz.com"
 $regionChoice = Read-Host "Enter choice (1/2)"
 switch ($regionChoice) {
-    "1" { $apiUrl = "https://api-us-east-1-cell-1.domotz.com/public-api/v1" }
-    "2" { $apiUrl = "https://api-eu-west-1-cell-1.domotz.com/public-api/v1" }
+    "1" { $baseURL = "https://api-us-east-1-cell-1.domotz.com/public-api/v1" }
+    "2" { $baseURL = "https://api-eu-west-1-cell-1.domotz.com/public-api/v1" }
     default {
         Write-Host "Invalid choice. Defaulting to US endpoint."
-        $apiUrl = "https://api-us-east-1-cell-1.domotz.com/public-api/v1"
+        $baseURL = "https://api-us-east-1-cell-1.domotz.com/public-api/v1"
     }
 }
 $apiKeySecure = Read-Host "Enter your Domotz API Key" -AsSecureString
