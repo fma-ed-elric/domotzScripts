@@ -1,5 +1,16 @@
 # Domotz API variables
-$apiUrl = "https://api-us-east-1-cell-1.domotz.com/public-api/v1/"
+Write-Host "Select your Domotz API region:"
+Write-Host "  1) US  - api-us-east-1-cell-1.domotz.com"
+Write-Host "  2) EU  - api-eu-west-1-cell-1.domotz.com"
+$regionChoice = Read-Host "Enter choice (1/2)"
+switch ($regionChoice) {
+    "1" { $apiUrl = "https://api-us-east-1-cell-1.domotz.com/public-api/v1/" }
+    "2" { $apiUrl = "https://api-eu-west-1-cell-1.domotz.com/public-api/v1/" }
+    default {
+        Write-Host "Invalid choice. Defaulting to US endpoint."
+        $apiUrl = "https://api-us-east-1-cell-1.domotz.com/public-api/v1/"
+    }
+}
 $apiKey = Read-Host "Enter your Domotz API Key"
 
 # Filters
@@ -91,12 +102,12 @@ if (-not $selectedDriver) {
 Write-Host "Selected driver: $($selectedDriver.name)"
 
 # Step 5: Sample period
-$samplePeriod = Read-Host "Enter sample period (5m, 10m, 15m, 30m, 1hr, 2hr, 6hr, 12hr, 24hr — leave empty for default 30m)"
+$samplePeriod = Read-Host "Enter sample period (5m, 10m, 15m, 30m, 1hr, 2hr, 6hr, 12hr, 24hr - leave empty for default 30m)"
 if ($samplePeriod -eq "") { $samplePeriod = "30m" }
 
 # Step 6: Credentials
 Write-Host "`nDoes this driver require credentials?"
-Write-Host "  1) No — leave blank"
+Write-Host "  1) No - leave blank"
 Write-Host "  2) Yes, same for all devices"
 Write-Host "  3) Yes, different per device"
 $credChoice = Read-Host "Enter choice (1/2/3)"
