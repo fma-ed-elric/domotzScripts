@@ -11,7 +11,8 @@ switch ($regionChoice) {
         $apiUrl = "https://api-us-east-1-cell-1.domotz.com/public-api/v1/"
     }
 }
-$apiKey = Read-Host "Enter your Domotz API Key"
+$apiKeySecure = Read-Host "Enter your Domotz API Key" -AsSecureString
+$apiKey = [System.Net.NetworkCredential]::new("", $apiKeySecure).Password
 
 # Filters
 $siteNames        = Read-Host "Enter site names separated by commas (Leave empty for all sites)"
