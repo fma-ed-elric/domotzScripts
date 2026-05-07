@@ -31,6 +31,6 @@ The output is parsed by searching for the section header strings `Current Config
 ## Setup in Domotz
 
 1. In Domotz, navigate to the target device → **Custom Drivers**.
-2. Upload or paste `main.js`.
+2. Upload or paste `index.js`.
 3. Set the device credentials to a level-15 SSH user.
 4. Run **Validate** to confirm connectivity, then enable the **Backup** schedule.

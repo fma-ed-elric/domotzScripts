@@ -25,11 +25,11 @@ The output of each config command is captured directly by array index and cleane
 
 ## Firmware Compatibility Note
 
-The `show running-configuration` output header varies by OS10 firmware version — some versions begin with `Current Configuration:`, others with `! Version X.X.X.X`. If you find the running config is being stored empty or malformed, check the raw SSH output and adjust the `cleanOutput()` parsing in `main.js` if needed.
+The `show running-configuration` output header varies by OS10 firmware version — some versions begin with `Current Configuration:`, others with `! Version X.X.X.X`. If you find the running config is being stored empty or malformed, check the raw SSH output and adjust the `cleanOutput()` parsing in `index.js` if needed.
 
 ## Setup in Domotz
 
 1. In Domotz, navigate to the target device → **Custom Drivers**.
-2. Upload or paste `main.js`.
+2. Upload or paste `index.js`.
 3. Set the device credentials to a sysadmin or admin-role SSH user.
 4. Run **Validate** to confirm connectivity, then enable the **Backup** schedule.
